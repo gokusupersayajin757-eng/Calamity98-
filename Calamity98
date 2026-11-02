@@ -157,7 +157,93 @@ void drawBotMenu() {
     }
 
     ImGui::End();
-}
+} #include <Geode/Geode.hpp>
+#include <Geode/modify/PlayerObject.hpp>
+#include <Geode/modify/GJBaseGameLayer.hpp>
+#include <vector>
+
+using namespace geode::prelude;
+
+// Estrutura de uma ação do Silicate
+struct SilicateAction {
+    int frame;
+    bool isPress;
+    int playerButton; // 1 = Pulo, etc.
+};
+
+// Gerenciador do Silicate Mobile
+class SilicateEngine {
+public:
+    std::vector<SilicateAction> macro;
+    int currentFrame = 0;
+    size_t actionIndex = 0;
+    bool isRecording = false;
+    bool isPlaying = false;
+
+    void reset() {
+        currentFrame = 0;
+        actionIndex = 0;
+    }
+
+    void clearMacro() {
+        macro.clear();
+        reset();
+    }
+};
+
+static SilicateEngine g_silicate;
+
+// Hook para controlar o ciclo de frames do jogo e reproduzir os cliques
+class $modify(NexusGameLayer, GJBaseGameLayer) {
+    void update(float dt) {
+        GJBaseGameLayer::update(dt);
+        
+        if (g_silicate.isPlaying) {
+            g_silicate.currentFrame++;
+
+            // Executa todas as ações gravadas para o frame atual
+            while (g_silicate.actionIndex < g_silicate.macro.size() && 
+                   g_silicate.macro[g_silicate.actionIndex].frame == g_silicate.currentFrame) {
+                
+                auto& action = g_silicate.macro[g_silicate.actionIndex];
+                auto player = m_player1;
+
+                if (player) {
+                    if (action.isPress) {
+                        player->pushButton(static_cast<PlayerButton>(action.playerButton));
+                    } else {
+                        player->releaseButton(static_cast<PlayerButton>(action.playerButton));
+                    }
+                }
+                g_silicate.actionIndex++;
+            }
+        } else if (g_silicate.isRecording) {
+            g_silicate.currentFrame++;
+        }
+    }
+
+    void handleButton(bool press, int button, bool isPlayer2) {
+        GJBaseGameLayer::handleButton(press, button, isPlayer2);
+
+        // Se estiver gravando, salva o input exatamente no frame atual
+        if (g_silicate.isRecording && !isPlayer2) {
+            g_silicate.macro.push_back({
+                g_silicate.currentFrame,
+                press,
+                button
+            });
+        }
+    }
+};
+
+// Resetar o bot quando o jogador morrer ou reiniciar o nível
+class $modify(NexusPlayerObject, PlayerObject) {
+    void playerDestroyed(bool p0) {
+        PlayerObject::playerDestroyed(p0);
+        g_silicate.reset(); // Volta o index de reprodução para o frame 0
+    }
+};
+
 
 
 
