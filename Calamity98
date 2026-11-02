@@ -394,9 +394,24 @@ Este mod reúne e aprimora ferramentas avançadas de criação e testes de fases
 - **GDH Input Buffer:** Otimização para registros precisos de cliques.
 - **Eclipse/Prism Menu Layout:** Interface estilizada em vermelho e preto.
 - **Automação de Cliques:** Suporte avançado para testes de taxas de TPS elevadas.
-
-
-
+g_bot.playing
+g_bot.recording
+winSize.height
+{
+    "geode": "3.0.0-beta.1",
+    "id": "calamity98.mega_eclipse_prism",
+    "version": "1.0.0",
+    "name": "Eclipse & Prism Menu Ultimate",
+    "developer": "calamity98",
+    "description": "Menu de alto desempenho com 5000 opções dinâmicas e Super Input Buffer.",
+    "dependencies": [
+        {
+            "id": "geode.loader",
+            "version": ">=3.0.0-beta.1",
+            "importance": "required"
+        }
+    ]
+}
 
 
 
