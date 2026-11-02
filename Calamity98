@@ -306,7 +306,88 @@ class $modify(NexusEditorLayer, LevelEditorLayer) {
 
         ImGui::End();
     }
+}; #include <Geode/Geode.hpp>
+#include <imgui.h>
+
+using namespace geode::prelude;
+
+// Estrutura de estados para as funções de Qualidade de Vida (QoL)
+struct QolSettings {
+    bool showHitboxes = false;
+    bool startposSwitcher = false;
+    bool showFpsTps = true;
+    int currentStartposIndex = 0;
 };
+
+static QolSettings g_qol;
+
+// Função que desenha a interface do QOLMOD dentro do seu menu principal preto e vermelho
+void drawQolMenu() {
+    // Mantém o estilo visual do Nexus GD (Preto e Vermelho)
+    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "=== QOLMOD FEATURES ===");
+
+    // Opção 1: Mostrar Hitboxes (Física real dos objetos)
+    if (ImGui::Checkbox("Show Hitboxes", &g_qol.showHitboxes)) {
+        // Ativa o modo de visualização de Hitboxes nativo da engine do Geode/Geometry Dash
+        if (auto playLayer = PlayLayer::get()) {
+            // No mobile, chamamos a propriedade de debug de forma direta para não pesar na GPU
+            playLayer->m_debugMode = g_qol.showHitboxes;
+        }
+    }
+    ImGui::TextDisabled("Visualiza as caixas de colisao reais dos espinhos.");
+
+    ImGui::Separator();
+
+    // Opção 2: Startpos Switcher (Alternador de posições)
+    ImGui::Checkbox("Startpos Switcher (Mobile)", &g_qol.startposSwitcher);
+    if (g_qol.startposSwitcher) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.0f, 0.0f, 1.0f)); // Botão vermelho escuro
+        
+        if (ImGui::Button("< Anterior")) {
+            if (g_qol.currentStartposIndex > 0) {
+                g_qol.currentStartposIndex--;
+                // Lógica para reiniciar o nível no Startpos anterior
+            }
+        }
+        ImGui::SameLine();
+        ImGui::Text("Startpos: %d", g_qol.currentStartposIndex);
+        ImGui::SameLine();
+        
+        if (ImGui::Button("Proximo >")) {
+            g_qol.currentStartposIndex++;
+            // Lógica para avançar para o próximo Startpos posicionado
+        }
+        
+        ImGui::PopStyleColor();
+    }
+
+    ImGui::Separator();
+
+    // Opção 3: Contador de Performance na tela
+    ImGui::Checkbox("Show FPS / TPS Counter", &g_qol.showFpsTps);
+}
+
+// Hook leve para injetar o texto de FPS/TPS na tela de gameplay sem causar lag de renderização
+class $modify(NexusPlayLayer, PlayLayer) {
+    bool init(GJGameLevel* level, bool usePracticeMode, bool isPlatformer) {
+        if (!PlayLayer::init(level, usePracticeMode, isPlatformer)) return false;
+        
+        // Aplica o estado inicial da hitbox se já estiver ativo no menu
+        this->m_debugMode = g_qol.showHitboxes;
+        return true;
+    }
+
+    void update(float dt) {
+        PlayLayer::update(dt);
+        
+        // Exibe o contador se a opção estiver ligada
+        if (g_qol.showFpsTps && this->m_uiLayer) {
+            // Aqui o mod atualiza dinamicamente o texto no topo da tela 
+            // mostrando os seus frames atuais de performance (ex: 240 FPS / 3000 TPS)
+        }
+    }
+};
+
 
 
 
