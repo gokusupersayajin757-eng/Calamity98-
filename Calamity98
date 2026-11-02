@@ -386,7 +386,15 @@ class $modify(NexusPlayLayer, PlayLayer) {
             // mostrando os seus frames atuais de performance (ex: 240 FPS / 3000 TPS)
         }
     }
-};
+}; # Meu Mod Customizado (Estilo Eclipse / Prism / GDH)
+
+Este mod reúne e aprimora ferramentas avançadas de criação e testes de fases impossíveis.
+
+## Recursos Inspirados nos Menus Populares:
+- **GDH Input Buffer:** Otimização para registros precisos de cliques.
+- **Eclipse/Prism Menu Layout:** Interface estilizada em vermelho e preto.
+- **Automação de Cliques:** Suporte avançado para testes de taxas de TPS elevadas.
+
 
 
 
