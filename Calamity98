@@ -90,7 +90,75 @@ class $modify(NexusPlayerObject, PlayerObject) {
         // Executa o clique normal do jogo sem atrasos
         PlayerObject::pushButton(button);
     }
+}; #include <Geode/Geode.hpp>
+#include <imgui.h>
+
+using namespace geode::prelude;
+
+// Estados das configurações do bot (estilo XDBOT / ZCB)
+struct BotSettings {
+    bool recording = false;
+    bool playing = false;
+    bool clickbotEnabled = false;
+    float speedhack = 1.0f;
+    int targetTPS = 240; // Foco em 240 TPS padrão para showcases estáveis no Android
+    float clickVolume = 0.8f;
 };
+
+static BotSettings g_bot;
+
+// Função principal que desenha a interface do menu
+void drawBotMenu() {
+    // Configura o estilo visual: Tema Nexus GD (Preto e Vermelho)
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.Colors[ImGuiCol_WindowBg]           = ImVec4(0.05f, 0.05f, 0.05f, 0.95f); // Fundo Preto
+    style.Colors[ImGuiCol_Header]             = ImVec4(0.80f, 0.00f, 0.00f, 1.00f); // Vermelho Nexus
+    style.Colors[ImGuiCol_HeaderHovered]      = ImVec4(0.95f, 0.10f, 0.10f, 1.00f);
+    style.Colors[ImGuiCol_Button]             = ImVec4(0.15f, 0.15f, 0.15f, 1.00f); // Botões escuros
+    style.Colors[ImGuiCol_ButtonHovered]      = ImVec4(0.80f, 0.00f, 0.00f, 1.00f); // Vermelho ao passar o dedo
+    style.Colors[ImGuiCol_ButtonActive]       = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_CheckMark]          = ImVec4(0.90f, 0.00f, 0.00f, 1.00f); // Caixas vermelhas
+    style.Colors[ImGuiCol_FrameBg]            = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+    style.Colors[ImGuiCol_SliderGrab]         = ImVec4(0.80f, 0.00f, 0.00f, 1.00f);
+
+    // Título do Menu estilizado
+    ImGui::Begin("NEXUS GD - SUPREME BOT MENU", nullptr, ImGuiWindowFlags_NoCollapse);
+
+    // --- SEÇÃO 1: GRAVAÇÃO E REPRODUÇÃO (Estilo Silicate/XDBOT) ---
+    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "=== MACRO ENGINE ===");
+    
+    if (ImGui::Checkbox("Record Macro", &g_bot.recording)) {
+        if (g_bot.recording) g_bot.playing = false; // Não pode gravar e reproduzir ao mesmo tempo
+    }
+    ImGui::SameLine();
+    if (ImGui::Checkbox("Play Macro", &g_bot.playing)) {
+        if (g_bot.playing) g_bot.recording = false;
+    }
+
+    ImGui::Separator();
+
+    // --- SEÇÃO 2: TAXA DE ATUALIZAÇÃO E SPEED (Estilo Mega Hack/Eclipse) ---
+    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "=== PHYSICS & SPEED ===");
+    
+    ImGui::SliderFloat("Speedhack", &g_bot.speedhack, 0.1f, 5.0f, "%.2fx");
+    ImGui::SliderInt("Ticks Per Second (TPS)", &g_bot.targetTPS, 60, 3000); // Suporte a alto TPS para showcases
+
+    ImGui::Separator();
+
+    // --- SEÇÃO 3: CLICKBOT (Estilo ZCB LIVE / XDBOT Clickbot) ---
+    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "=== CLICKBOT AUDIO ===");
+    
+    ImGui::Checkbox("Enable ZCB Clickbot", &g_bot.clickbotEnabled);
+    if (g_bot.clickbotEnabled) {
+        ImGui::SliderFloat("Click Volume", &g_bot.clickVolume, 0.0f, 1.0f, "%.1f");
+        
+        // Exibe um status visual simples na interface
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Clickbot ativo e processando cliques rápidos!");
+    }
+
+    ImGui::End();
+}
+
 
 
 
