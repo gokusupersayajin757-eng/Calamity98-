@@ -11,6 +11,24 @@
   "dependencies": [],
   "resources": {
     "sprites": ["assets/*.png"]
-  }
+  // Definição das Cores do Menu (Preto e Vermelho)
+void applyNexusTheme() {
+    ImGuiStyle& style = ImGui::GetStyle();
+    
+    style.Colors[ImGuiCol_WindowBg]      = ImVec4(0.05f, 0.05f, 0.05f, 0.95f); // Fundo Preto Escuro
+    style.Colors[ImGuiCol_Header]        = ImVec4(0.80f, 0.00f, 0.00f, 1.00f); // Vermelho Nexus
+    style.Colors[ImGuiCol_ButtonActive]  = ImVec4(1.00f, 0.10f, 0.10f, 1.00f); // Vermelho Brilhante ao clicar
+    style.Colors[ImGuiCol_CheckMark]     = ImVec4(0.90f, 0.00f, 0.00f, 1.00f); // Caixa de marcação vermelha
 }
+
+// Renderizando a Imagem do Nexus GD no Topo do Menu
+void renderNexusLogo() {
+    // Carrega a textura usando o sistema de gerenciamento do Geode
+    auto texture = CCSprite::create("nexus_logo.png"); 
+    if (texture) {
+        // Código para injetar a imagem do Nexus dentro do cabeçalho do ImGui
+    }
+}
+
+
 
