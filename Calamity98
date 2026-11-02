@@ -28,7 +28,18 @@ void renderNexusLogo() {
     if (texture) {
         // Código para injetar a imagem do Nexus dentro do cabeçalho do ImGui
     }
+{
+    "geode": "3.0.0-beta.1",
+    "id": "calamity98.nexus_mega_menu",
+    "version": "1.0.0",
+    "name": "Nexus Mega Menu",
+    "developer": "calamity98",
+    "description": "O menu definitivo com funções estilo Mega Hack, bots e QoL.",
+    "android": {
+        "architectures": ["arm64-v8a"]
+    }
 }
+
 
 
 
