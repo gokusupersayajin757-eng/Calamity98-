@@ -38,7 +38,59 @@ void renderNexusLogo() {
     "android": {
         "architectures": ["arm64-v8a"]
     }
-}
+#include <Geode/Geode.hpp>
+#include <Geode/modify/PlayerObject.hpp>
+#include <queue>
+
+using namespace geode::prelude;
+
+// Estrutura para gerenciar o estado do buffer sem causar lag de memória
+struct InputBufferManager {
+    bool hasBufferedInput = false;
+    int remainingFrames = 0;
+    const int MAX_BUFFER_FRAMES = 4; // Buffer ideal para o Realme P4 Lite (aprox. 4-5ms de margem)
+};
+
+static InputBufferManager g_buffer;
+
+class $modify(NexusPlayerObject, PlayerObject) {
+    
+    // Hook na função que atualiza o jogador a cada frame
+    void update(float dt) {
+        PlayerObject::update(dt);
+
+        // Se houver um clique guardado no buffer
+        if (g_buffer.hasBufferedInput) {
+            // Verifica se o jogador está em uma condição válida para pular (Ex: tocando o chão)
+            if (this->m_isOnGround || this->m_isPlatformer) {
+                // Executa o pulo guardado no frame exato de contato
+                this->pushButton(PlayerButton::Jump);
+                g_buffer.hasBufferedInput = false;
+            } else {
+                // Diminui o tempo de vida do clique no buffer para não registrar cliques velhos demais
+                g_buffer.remainingFrames--;
+                if (g_buffer.remainingFrames <= 0) {
+                    g_buffer.hasBufferedInput = false;
+                }
+            }
+        }
+    }
+
+    // Hook na função que detecta quando a tela é tocada
+    void pushButton(PlayerButton button) {
+        if (button == PlayerButton::Jump) {
+            // Se o jogador NÃO puder pular agora (está no ar, saindo de transição, etc.)
+            if (!this->m_isOnGround && !this->m_isPlatformer) {
+                // Guarda o clique no buffer para os próximos frames
+                g_buffer.hasBufferedInput = true;
+                g_buffer.remainingFrames = g_buffer.MAX_BUFFER_FRAMES;
+            }
+        }
+        
+        // Executa o clique normal do jogo sem atrasos
+        PlayerObject::pushButton(button);
+    }
+};
 
 
 
