@@ -242,7 +242,72 @@ class $modify(NexusPlayerObject, PlayerObject) {
         PlayerObject::playerDestroyed(p0);
         g_silicate.reset(); // Volta o index de reprodução para o frame 0
     }
+}; #include <Geode/Geode.hpp>
+#include <Geode/modify/LevelEditorLayer.hpp>
+#include <imgui.h>
+
+using namespace geode::prelude;
+
+struct BuffSettings {
+    bool isSuperBuffActive = false;
+    float buffMultiplier = 1.2f;      // Buff normal: Aumenta a velocidade/física em 20%
+    float superBuffMultiplier = 2.0f; // Superbuff: Dobra a velocidade/física para torná-lo impossível
 };
+
+static BuffSettings g_buff;
+
+// Função para aplicar o buff nos objetos do nível dentro do editor
+void applyMacroBuff(LevelEditorLayer* editor, float multiplier) {
+    if (!editor || !editor->m_objects) return;
+
+    // Percorre todos os objetos posicionados no nível do editor
+    CCObject* obj;
+    CCARRAY_FOREACH(editor->m_objects, obj) {
+        auto gameObject = typeinfo_cast<GameObject*>(obj);
+        if (gameObject) {
+            // Modifica a escala ou posição relativa para aproximar obstáculos (buff de proximidade)
+            // No Realme P4 Lite, fazemos cálculos diretos na struct para não gerar lag na Unreal/Cocos
+            float currentX = gameObject->getPositionX();
+            gameObject->setPositionX(currentX * (1.0f / multiplier));
+            
+            // Se for um superbuff, altera o tamanho dos espinhos/obstáculos para ficarem extremos
+            if (g_buff.isSuperBuffActive) {
+                gameObject->setScale(gameObject->getScale() * 1.3f);
+            }
+        }
+    }
+    
+    // Atualiza visualmente o editor para mostrar as alterações
+    editor->updateOptions();
+}
+
+// Injeção da interface do Macrobuff dentro do painel do Editor do Geode
+class $modify(NexusEditorLayer, LevelEditorLayer) {
+    // Hook na inicialização do editor
+    bool init(GJGameLevel* level, bool p1) {
+        if (!LevelEditorLayer::init(level, p1)) return false;
+        return true;
+    }
+
+    // Função auxiliar que você chamará a partir do seu menu flutuante ImGui
+    void drawEditorBuffMenu() {
+        ImGui::Begin("NEXUS GD - EDITOR BUFFS", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "=== LEVEL BUFF ENGINE ===");
+        
+        ImGui::Checkbox("Modo SUPERBUFF (Extremo)", &g_buff.isSuperBuffActive);
+
+        // Botão para aplicar o Buff
+        if (ImGui::Button("Aplicar Buff no Nível")) {
+            float currentMultiplier = g_buff.isSuperBuffActive ? g_buff.superBuffMultiplier : g_buff.buffMultiplier;
+            applyMacroBuff(this, currentMultiplier);
+            FLAlertLayer::create("Nexus GD", "MacroBuff aplicado com sucesso no Editor!", "OK")->show();
+        }
+
+        ImGui::End();
+    }
+};
+
 
 
 
