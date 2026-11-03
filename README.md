@@ -1,1 +1,416 @@
-# Calamity98-
+{
+  "geode": "v1.0.0",
+  "gd": {
+    "win": "2.2081",
+    "android": "2.2081"
+  },
+  "id": "seu.nome.modmenu_ultimate",
+  "name": "Ultimate Menu Mod",
+  "version": "v1.0.0",
+  "developer": "SeuNome",
+  "dependencies": [],
+  "resources": {
+    "sprites": ["assets/*.png"]
+  // Definição das Cores do Menu (Preto e Vermelho)
+void applyNexusTheme() {
+    ImGuiStyle& style = ImGui::GetStyle();
+    
+    style.Colors[ImGuiCol_WindowBg]      = ImVec4(0.05f, 0.05f, 0.05f, 0.95f); // Fundo Preto Escuro
+    style.Colors[ImGuiCol_Header]        = ImVec4(0.80f, 0.00f, 0.00f, 1.00f); // Vermelho Nexus
+    style.Colors[ImGuiCol_ButtonActive]  = ImVec4(1.00f, 0.10f, 0.10f, 1.00f); // Vermelho Brilhante ao clicar
+    style.Colors[ImGuiCol_CheckMark]     = ImVec4(0.90f, 0.00f, 0.00f, 1.00f); // Caixa de marcação vermelha
+}
+
+// Renderizando a Imagem do Nexus GD no Topo do Menu
+void renderNexusLogo() {
+    // Carrega a textura usando o sistema de gerenciamento do Geode
+    auto texture = CCSprite::create("nexus_logo.png"); 
+    if (texture) {
+        // Código para injetar a imagem do Nexus dentro do cabeçalho do ImGui
+    }
+{
+    "geode": "3.0.0-beta.1",
+    "id": "calamity98.nexus_mega_menu",
+    "version": "1.0.0",
+    "name": "Nexus Mega Menu",
+    "developer": "calamity98",
+    "description": "O menu definitivo com funções estilo Mega Hack, bots e QoL.",
+    "android": {
+        "architectures": ["arm64-v8a"]
+    }
+#include <Geode/Geode.hpp>
+#include <Geode/modify/PlayerObject.hpp>
+#include <queue>
+
+using namespace geode::prelude;
+
+// Estrutura para gerenciar o estado do buffer sem causar lag de memória
+struct InputBufferManager {
+    bool hasBufferedInput = false;
+    int remainingFrames = 0;
+    const int MAX_BUFFER_FRAMES = 4; // Buffer ideal para o Realme P4 Lite (aprox. 4-5ms de margem)
+};
+
+static InputBufferManager g_buffer;
+
+class $modify(NexusPlayerObject, PlayerObject) {
+    
+    // Hook na função que atualiza o jogador a cada frame
+    void update(float dt) {
+        PlayerObject::update(dt);
+
+        // Se houver um clique guardado no buffer
+        if (g_buffer.hasBufferedInput) {
+            // Verifica se o jogador está em uma condição válida para pular (Ex: tocando o chão)
+            if (this->m_isOnGround || this->m_isPlatformer) {
+                // Executa o pulo guardado no frame exato de contato
+                this->pushButton(PlayerButton::Jump);
+                g_buffer.hasBufferedInput = false;
+            } else {
+                // Diminui o tempo de vida do clique no buffer para não registrar cliques velhos demais
+                g_buffer.remainingFrames--;
+                if (g_buffer.remainingFrames <= 0) {
+                    g_buffer.hasBufferedInput = false;
+                }
+            }
+        }
+    }
+
+    // Hook na função que detecta quando a tela é tocada
+    void pushButton(PlayerButton button) {
+        if (button == PlayerButton::Jump) {
+            // Se o jogador NÃO puder pular agora (está no ar, saindo de transição, etc.)
+            if (!this->m_isOnGround && !this->m_isPlatformer) {
+                // Guarda o clique no buffer para os próximos frames
+                g_buffer.hasBufferedInput = true;
+                g_buffer.remainingFrames = g_buffer.MAX_BUFFER_FRAMES;
+            }
+        }
+        
+        // Executa o clique normal do jogo sem atrasos
+        PlayerObject::pushButton(button);
+    }
+}; #include <Geode/Geode.hpp>
+#include <imgui.h>
+
+using namespace geode::prelude;
+
+// Estados das configurações do bot (estilo XDBOT / ZCB)
+struct BotSettings {
+    bool recording = false;
+    bool playing = false;
+    bool clickbotEnabled = false;
+    float speedhack = 1.0f;
+    int targetTPS = 240; // Foco em 240 TPS padrão para showcases estáveis no Android
+    float clickVolume = 0.8f;
+};
+
+static BotSettings g_bot;
+
+// Função principal que desenha a interface do menu
+void drawBotMenu() {
+    // Configura o estilo visual: Tema Nexus GD (Preto e Vermelho)
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.Colors[ImGuiCol_WindowBg]           = ImVec4(0.05f, 0.05f, 0.05f, 0.95f); // Fundo Preto
+    style.Colors[ImGuiCol_Header]             = ImVec4(0.80f, 0.00f, 0.00f, 1.00f); // Vermelho Nexus
+    style.Colors[ImGuiCol_HeaderHovered]      = ImVec4(0.95f, 0.10f, 0.10f, 1.00f);
+    style.Colors[ImGuiCol_Button]             = ImVec4(0.15f, 0.15f, 0.15f, 1.00f); // Botões escuros
+    style.Colors[ImGuiCol_ButtonHovered]      = ImVec4(0.80f, 0.00f, 0.00f, 1.00f); // Vermelho ao passar o dedo
+    style.Colors[ImGuiCol_ButtonActive]       = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_CheckMark]          = ImVec4(0.90f, 0.00f, 0.00f, 1.00f); // Caixas vermelhas
+    style.Colors[ImGuiCol_FrameBg]            = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+    style.Colors[ImGuiCol_SliderGrab]         = ImVec4(0.80f, 0.00f, 0.00f, 1.00f);
+
+    // Título do Menu estilizado
+    ImGui::Begin("NEXUS GD - SUPREME BOT MENU", nullptr, ImGuiWindowFlags_NoCollapse);
+
+    // --- SEÇÃO 1: GRAVAÇÃO E REPRODUÇÃO (Estilo Silicate/XDBOT) ---
+    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "=== MACRO ENGINE ===");
+    
+    if (ImGui::Checkbox("Record Macro", &g_bot.recording)) {
+        if (g_bot.recording) g_bot.playing = false; // Não pode gravar e reproduzir ao mesmo tempo
+    }
+    ImGui::SameLine();
+    if (ImGui::Checkbox("Play Macro", &g_bot.playing)) {
+        if (g_bot.playing) g_bot.recording = false;
+    }
+
+    ImGui::Separator();
+
+    // --- SEÇÃO 2: TAXA DE ATUALIZAÇÃO E SPEED (Estilo Mega Hack/Eclipse) ---
+    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "=== PHYSICS & SPEED ===");
+    
+    ImGui::SliderFloat("Speedhack", &g_bot.speedhack, 0.1f, 5.0f, "%.2fx");
+    ImGui::SliderInt("Ticks Per Second (TPS)", &g_bot.targetTPS, 60, 3000); // Suporte a alto TPS para showcases
+
+    ImGui::Separator();
+
+    // --- SEÇÃO 3: CLICKBOT (Estilo ZCB LIVE / XDBOT Clickbot) ---
+    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "=== CLICKBOT AUDIO ===");
+    
+    ImGui::Checkbox("Enable ZCB Clickbot", &g_bot.clickbotEnabled);
+    if (g_bot.clickbotEnabled) {
+        ImGui::SliderFloat("Click Volume", &g_bot.clickVolume, 0.0f, 1.0f, "%.1f");
+        
+        // Exibe um status visual simples na interface
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Clickbot ativo e processando cliques rápidos!");
+    }
+
+    ImGui::End();
+} #include <Geode/Geode.hpp>
+#include <Geode/modify/PlayerObject.hpp>
+#include <Geode/modify/GJBaseGameLayer.hpp>
+#include <vector>
+
+using namespace geode::prelude;
+
+// Estrutura de uma ação do Silicate
+struct SilicateAction {
+    int frame;
+    bool isPress;
+    int playerButton; // 1 = Pulo, etc.
+};
+
+// Gerenciador do Silicate Mobile
+class SilicateEngine {
+public:
+    std::vector<SilicateAction> macro;
+    int currentFrame = 0;
+    size_t actionIndex = 0;
+    bool isRecording = false;
+    bool isPlaying = false;
+
+    void reset() {
+        currentFrame = 0;
+        actionIndex = 0;
+    }
+
+    void clearMacro() {
+        macro.clear();
+        reset();
+    }
+};
+
+static SilicateEngine g_silicate;
+
+// Hook para controlar o ciclo de frames do jogo e reproduzir os cliques
+class $modify(NexusGameLayer, GJBaseGameLayer) {
+    void update(float dt) {
+        GJBaseGameLayer::update(dt);
+        
+        if (g_silicate.isPlaying) {
+            g_silicate.currentFrame++;
+
+            // Executa todas as ações gravadas para o frame atual
+            while (g_silicate.actionIndex < g_silicate.macro.size() && 
+                   g_silicate.macro[g_silicate.actionIndex].frame == g_silicate.currentFrame) {
+                
+                auto& action = g_silicate.macro[g_silicate.actionIndex];
+                auto player = m_player1;
+
+                if (player) {
+                    if (action.isPress) {
+                        player->pushButton(static_cast<PlayerButton>(action.playerButton));
+                    } else {
+                        player->releaseButton(static_cast<PlayerButton>(action.playerButton));
+                    }
+                }
+                g_silicate.actionIndex++;
+            }
+        } else if (g_silicate.isRecording) {
+            g_silicate.currentFrame++;
+        }
+    }
+
+    void handleButton(bool press, int button, bool isPlayer2) {
+        GJBaseGameLayer::handleButton(press, button, isPlayer2);
+
+        // Se estiver gravando, salva o input exatamente no frame atual
+        if (g_silicate.isRecording && !isPlayer2) {
+            g_silicate.macro.push_back({
+                g_silicate.currentFrame,
+                press,
+                button
+            });
+        }
+    }
+};
+
+// Resetar o bot quando o jogador morrer ou reiniciar o nível
+class $modify(NexusPlayerObject, PlayerObject) {
+    void playerDestroyed(bool p0) {
+        PlayerObject::playerDestroyed(p0);
+        g_silicate.reset(); // Volta o index de reprodução para o frame 0
+    }
+}; #include <Geode/Geode.hpp>
+#include <Geode/modify/LevelEditorLayer.hpp>
+#include <imgui.h>
+
+using namespace geode::prelude;
+
+struct BuffSettings {
+    bool isSuperBuffActive = false;
+    float buffMultiplier = 1.2f;      // Buff normal: Aumenta a velocidade/física em 20%
+    float superBuffMultiplier = 2.0f; // Superbuff: Dobra a velocidade/física para torná-lo impossível
+};
+
+static BuffSettings g_buff;
+
+// Função para aplicar o buff nos objetos do nível dentro do editor
+void applyMacroBuff(LevelEditorLayer* editor, float multiplier) {
+    if (!editor || !editor->m_objects) return;
+
+    // Percorre todos os objetos posicionados no nível do editor
+    CCObject* obj;
+    CCARRAY_FOREACH(editor->m_objects, obj) {
+        auto gameObject = typeinfo_cast<GameObject*>(obj);
+        if (gameObject) {
+            // Modifica a escala ou posição relativa para aproximar obstáculos (buff de proximidade)
+            // No Realme P4 Lite, fazemos cálculos diretos na struct para não gerar lag na Unreal/Cocos
+            float currentX = gameObject->getPositionX();
+            gameObject->setPositionX(currentX * (1.0f / multiplier));
+            
+            // Se for um superbuff, altera o tamanho dos espinhos/obstáculos para ficarem extremos
+            if (g_buff.isSuperBuffActive) {
+                gameObject->setScale(gameObject->getScale() * 1.3f);
+            }
+        }
+    }
+    
+    // Atualiza visualmente o editor para mostrar as alterações
+    editor->updateOptions();
+}
+
+// Injeção da interface do Macrobuff dentro do painel do Editor do Geode
+class $modify(NexusEditorLayer, LevelEditorLayer) {
+    // Hook na inicialização do editor
+    bool init(GJGameLevel* level, bool p1) {
+        if (!LevelEditorLayer::init(level, p1)) return false;
+        return true;
+    }
+
+    // Função auxiliar que você chamará a partir do seu menu flutuante ImGui
+    void drawEditorBuffMenu() {
+        ImGui::Begin("NEXUS GD - EDITOR BUFFS", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "=== LEVEL BUFF ENGINE ===");
+        
+        ImGui::Checkbox("Modo SUPERBUFF (Extremo)", &g_buff.isSuperBuffActive);
+
+        // Botão para aplicar o Buff
+        if (ImGui::Button("Aplicar Buff no Nível")) {
+            float currentMultiplier = g_buff.isSuperBuffActive ? g_buff.superBuffMultiplier : g_buff.buffMultiplier;
+            applyMacroBuff(this, currentMultiplier);
+            FLAlertLayer::create("Nexus GD", "MacroBuff aplicado com sucesso no Editor!", "OK")->show();
+        }
+
+        ImGui::End();
+    }
+}; #include <Geode/Geode.hpp>
+#include <imgui.h>
+
+using namespace geode::prelude;
+
+// Estrutura de estados para as funções de Qualidade de Vida (QoL)
+struct QolSettings {
+    bool showHitboxes = false;
+    bool startposSwitcher = false;
+    bool showFpsTps = true;
+    int currentStartposIndex = 0;
+};
+
+static QolSettings g_qol;
+
+// Função que desenha a interface do QOLMOD dentro do seu menu principal preto e vermelho
+void drawQolMenu() {
+    // Mantém o estilo visual do Nexus GD (Preto e Vermelho)
+    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "=== QOLMOD FEATURES ===");
+
+    // Opção 1: Mostrar Hitboxes (Física real dos objetos)
+    if (ImGui::Checkbox("Show Hitboxes", &g_qol.showHitboxes)) {
+        // Ativa o modo de visualização de Hitboxes nativo da engine do Geode/Geometry Dash
+        if (auto playLayer = PlayLayer::get()) {
+            // No mobile, chamamos a propriedade de debug de forma direta para não pesar na GPU
+            playLayer->m_debugMode = g_qol.showHitboxes;
+        }
+    }
+    ImGui::TextDisabled("Visualiza as caixas de colisao reais dos espinhos.");
+
+    ImGui::Separator();
+
+    // Opção 2: Startpos Switcher (Alternador de posições)
+    ImGui::Checkbox("Startpos Switcher (Mobile)", &g_qol.startposSwitcher);
+    if (g_qol.startposSwitcher) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.0f, 0.0f, 1.0f)); // Botão vermelho escuro
+        
+        if (ImGui::Button("< Anterior")) {
+            if (g_qol.currentStartposIndex > 0) {
+                g_qol.currentStartposIndex--;
+                // Lógica para reiniciar o nível no Startpos anterior
+            }
+        }
+        ImGui::SameLine();
+        ImGui::Text("Startpos: %d", g_qol.currentStartposIndex);
+        ImGui::SameLine();
+        
+        if (ImGui::Button("Proximo >")) {
+            g_qol.currentStartposIndex++;
+            // Lógica para avançar para o próximo Startpos posicionado
+        }
+        
+        ImGui::PopStyleColor();
+    }
+
+    ImGui::Separator();
+
+    // Opção 3: Contador de Performance na tela
+    ImGui::Checkbox("Show FPS / TPS Counter", &g_qol.showFpsTps);
+}
+
+// Hook leve para injetar o texto de FPS/TPS na tela de gameplay sem causar lag de renderização
+class $modify(NexusPlayLayer, PlayLayer) {
+    bool init(GJGameLevel* level, bool usePracticeMode, bool isPlatformer) {
+        if (!PlayLayer::init(level, usePracticeMode, isPlatformer)) return false;
+        
+        // Aplica o estado inicial da hitbox se já estiver ativo no menu
+        this->m_debugMode = g_qol.showHitboxes;
+        return true;
+    }
+
+    void update(float dt) {
+        PlayLayer::update(dt);
+        
+        // Exibe o contador se a opção estiver ligada
+        if (g_qol.showFpsTps && this->m_uiLayer) {
+            // Aqui o mod atualiza dinamicamente o texto no topo da tela 
+            // mostrando os seus frames atuais de performance (ex: 240 FPS / 3000 TPS)
+        }
+    }
+}; # Meu Mod Customizado (Estilo Eclipse / Prism / GDH)
+
+Este mod reúne e aprimora ferramentas avançadas de criação e testes de fases impossíveis.
+
+## Recursos Inspirados nos Menus Populares:
+- **GDH Input Buffer:** Otimização para registros precisos de cliques.
+- **Eclipse/Prism Menu Layout:** Interface estilizada em vermelho e preto.
+- **Automação de Cliques:** Suporte avançado para testes de taxas de TPS elevadas.
+g_bot.playing
+g_bot.recording
+winSize.height
+{
+    "geode": "3.0.0-beta.1",
+    "id": "calamity98.mega_eclipse_prism",
+    "version": "1.0.0",
+    "name": "Eclipse & Prism Menu Ultimate",
+    "developer": "calamity98",
+    "description": "Menu de alto desempenho com 5000 opções dinâmicas e Super Input Buffer.",
+    "dependencies": [
+        {
+            "id": "geode.loader",
+            "version": ">=3.0.0-beta.1",
+            
+
+
+
+
+
