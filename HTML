@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CALAMITY98 - Comunidade BR</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: #008080;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Janela estilo Windows 98 */
+        .window {
+            width: 96vw;
+            height: 94vh;
+            background-color: #c0c0c0;
+            border-top: 2px solid #ffffff;
+            border-left: 2px solid #ffffff;
+            border-right: 2px solid #000000;
+            border-bottom: 2px solid #000000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Barra de Título */
+        .title-bar {
+            background: linear-gradient(90deg, #000080, #1084d0);
+            color: white;
+            padding: 4px 8px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .title-controls button {
+            background: #c0c0c0;
+            border-top: 1px solid #fff;
+            border-left: 1px solid #fff;
+            border-right: 1px solid #000;
+            border-bottom: 1px solid #000;
+            width: 18px;
+            height: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        /* Área Principal */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        /* Coluna 1: Servidores */
+        .servers-bar {
+            width: 65px;
+            background-color: #808080;
+            border-top: 2px solid #000;
+            border-left: 2px solid #000;
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 0;
+            gap: 10px;
+        }
+
+        .server-icon {
+            width: 45px;
+            height: 45px;
+            background-color: #c0c0c0;
+            border-top: 2px solid #fff;
+            border-left: 2px solid #fff;
+            border-right: 2px solid #000;
+            border-bottom: 2px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .server-icon.active {
+            background-color: #000080;
+            color: #00ff00;
+            border-top: 2px solid #000;
+            border-left: 2px solid #000;
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+        }
+
+        /* Coluna 2: Canais */
+        .channels-bar {
+            width: 210px;
+            background-color: #c0c0c0;
+            border-top: 2px solid #000;
+            border-left: 2px solid #000;
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .server-header {
+            padding: 10px;
+            font-weight: bold;
+            border-bottom: 2px solid #808080;
+            background: #dfdfdf;
+            color: #000080;
+        }
+
+        .channel-list {
+            padding: 8px;
+            flex: 1;
+        }
+
+        .channel-category {
+            font-size: 11px;
+            font-weight: bold;
+            color: #404040;
+            margin-top: 10px;
+            margin-bottom: 4px;
+        }
+
+        .channel-item {
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+
+        .channel-item:hover {
+            background-color: #a0a0a0;
+        }
+
+        .channel-item.active {
+            background-color: #000080;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .user-panel {
+            padding: 8px;
+            background-color: #a0a0a0;
+            border-top: 2px solid #fff;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #00ff00;
+            border: 1px solid #000;
+        }
+
+        /* Coluna 3: Chat */
+        .chat-area {
+            flex: 1;
+            background-color: #121212;
+            color: #00ff00;
+            border-top: 2px solid #000;
+            border-left: 2px solid #000;
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background-color: #c0c0c0;
+            color: #000;
+            padding: 8px 12px;
+            font-weight: bold;
+            border-bottom: 2px solid #808080;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            line-height: 1.4;
+            font-size: 14px;
+        }
+
+        .msg-author {
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        .msg-time {
+            color: #808080;
+            font-size: 11px;
+            margin-left: 6px;
+        }
+
+        .msg-text {
+            color: #e0e0e0;
+            margin-top: 2px;
+        }
+
+        .chat-input-box {
+            padding: 8px;
+            background-color: #c0c0c0;
+            display: flex;
+            gap: 6px;
+        }
+
+        .chat-input-box input {
+            flex: 1;
+            padding: 6px;
+            border-top: 2px solid #000;
+            border-left: 2px solid #000;
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            background: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .chat-input-box button {
+            padding: 6px 14px;
+            background: #c0c0c0;
+            border-top: 2px solid #fff;
+            border-left: 2px solid #fff;
+            border-right: 2px solid #000;
+            border-bottom: 2px solid #000;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .chat-input-box button:active {
+            border-top: 2px solid #000;
+            border-left: 2px solid #000;
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+        }
+
+        /* Coluna 4: Membros */
+        .members-bar {
+            width: 180px;
+            background-color: #c0c0c0;
+            border-top: 2px solid #000;
+            border-left: 2px solid #000;
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        .member {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="window">
+    <div class="title-bar">
+        <span>C:\CALAMITY98\CLIENT.EXE - [100% GRÁTIS - SERVIDOR BR]</span>
+        <div class="title-controls">
+            <button>_</button>
+            <button>□</button>
+            <button onclick="alert('Sistema CALAMITY98 encerrado!')">X</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Servidores -->
+        <div class="servers-bar">
+            <div class="server-icon active" title="CALAMITY98 Oficial">C98</div>
+            <div class="server-icon" title="Clube Retrô BR" onclick="alert('Servidor secundário em breve!')">BR</div>
+            <div class="server-icon" title="Criar Servidor" onclick="alert('Criação de servidores liberada na versão online!')">+</div>
+        </div>
+
+        <!-- Canais -->
+        <div class="channels-bar">
+            <div>
+                <div class="server-header">CALAMITY98 HQ</div>
+                <div class="channel-list">
+                    <div class="channel-category">▼ CANAIS DE TEXTO</div>
+                    <div class="channel-item active" onclick="mudarCanal('geral', this)"># geral</div>
+                    <div class="channel-item" onclick="mudarCanal('jogos-br', this)"># jogos-br</div>
+                    <div class="channel-item" onclick="mudarCanal('memes-98', this)"># memes-98</div>
+
+                    <div class="channel-category">▼ SALAS DE VOZ</div>
+                    <div class="channel-item" onclick="entrarVoz('Call Geral BR')">🔊 Call Geral BR</div>
+                    <div class="channel-item" onclick="entrarVoz('Jogatina Madrugada')">🔊 Jogatina Madrugada</div>
+                </div>
+            </div>
+            <div class="user-panel">
+                <div class="status-dot"></div>
+                <div>
+                    <strong id="meu-nick">Admin_98</strong><br>
+                    <span style="font-size: 10px;">Ping: 12ms (SP-BR)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat -->
+        <div class="chat-area">
+            <div class="chat-header" id="canal-titulo"># geral — Bem-vindo ao CALAMITY98!</div>
+            <div class="messages" id="chat-messages">
+                <div class="message">
+                    <span class="msg-author">[BOT] Sistema98</span>
+                    <span class="msg-time">22:00</span>
